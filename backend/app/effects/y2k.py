@@ -20,7 +20,7 @@ from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.gp import gp_Pnt
-from OCP.TopoDS import topods
+from OCP.TopoDS import topods_Shell
 from scipy.spatial import Voronoi, cKDTree
 
 
@@ -532,7 +532,7 @@ def _sew_to_shape(sewing: BRepBuilderAPI_Sewing) -> cq.Shape:
     found = False
     explorer = TopExp_Explorer(sewn, TopAbs_SHELL)
     while explorer.More():
-        solid_builder.Add(topods.Shell(explorer.Current()))
+        solid_builder.Add(topods_Shell(explorer.Current()))
         found = True
         explorer.Next()
 

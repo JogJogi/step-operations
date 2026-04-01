@@ -154,8 +154,8 @@ def _make_solid_from_sewn(sewn_shape: TopoDS_Shape):
         explorer = TopExp_Explorer(sewn_shape, TopAbs_SHELL)
         while explorer.More():
             shell = explorer.Current()
-            from OCP.TopoDS import topods
-            solid_builder.Add(topods.Shell(shell))
+            from OCP.TopoDS import topods_Shell
+            solid_builder.Add(topods_Shell(shell))
             found_shell = True
             explorer.Next()
 
