@@ -1,0 +1,8 @@
+**/__pycache__
+**/*.pyc
+**/.git
+**/node_modules
+**/.DS_Store
+*.step
+*.stp
+*.stl
