@@ -2,11 +2,9 @@
  * API communication: REST + WebSocket.
  */
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:8000'
-    : `http://${window.location.hostname}:8000`;
+const API_BASE = '';  // relative URLs — nginx proxies /api/ and /ws/ to backend
 
-const WS_BASE = API_BASE.replace('http://', 'ws://').replace('https://', 'wss://');
+const WS_BASE = `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
 
 let ws = null;
 let wsReconnectTimer = null;
