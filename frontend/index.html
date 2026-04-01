@@ -72,9 +72,9 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            cursor: pointer;
             border: 2px dashed var(--border);
             transition: border-color 0.2s;
+            z-index: 10;
         }
         #dropzone.drag-over { border-color: var(--accent); }
         #dropzone.hidden { display: none; }
@@ -271,14 +271,14 @@
 <div class="main-layout">
     <!-- 3D Viewer -->
     <div id="viewer-container">
-        <!-- Dropzone -->
-        <div id="dropzone">
+        <!-- Dropzone: label wraps the input so the whole area is clickable -->
+        <label id="dropzone" for="file-input">
             <div class="dropzone-icon">📐</div>
             <div class="dropzone-text">STEP / STP Datei hierher ziehen</div>
             <div class="dropzone-hint">oder klicken zum Öffnen</div>
-            <button class="btn-primary" onclick="event.stopPropagation()">Datei wählen</button>
+            <span class="btn-primary">Datei wählen</span>
             <input type="file" id="file-input" accept=".step,.stp" style="display:none">
-        </div>
+        </label>
 
         <!-- Loading overlay -->
         <div id="loading-overlay" class="hidden">

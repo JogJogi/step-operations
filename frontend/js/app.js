@@ -31,7 +31,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file-input');
 
-    dropzone.addEventListener('click', () => fileInput.click());
+    // Label[for=file-input] handles click natively — no JS click handler needed.
+    // Drag & drop:
     dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
     dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
     dropzone.addEventListener('drop', (e) => {
