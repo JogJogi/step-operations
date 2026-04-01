@@ -8,9 +8,9 @@
  * - Locked face overlay (blue faces)
  */
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/controls/OrbitControls.js';
-import { MeshBVH, acceleratedRaycast } from 'https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js';
+import * as THREE from '/vendor/three.module.js';
+import { OrbitControls } from '/vendor/OrbitControls.js';
+import { MeshBVH, acceleratedRaycast } from '/vendor/three-mesh-bvh.module.js';
 
 // Patch Three.js raycasting with BVH for performance
 THREE.Mesh.prototype.raycast = acceleratedRaycast;
