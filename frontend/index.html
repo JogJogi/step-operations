@@ -496,23 +496,31 @@ function initWS() {
         try { data = JSON.parse(evt.data); } catch(e) { return; }
         if (data.error) { setStatus('Preview Fehler: ' + data.error, 'error'); hideLoading(); return; }
 
-        // Update mesh
         faceMap = data.face_map || {};
         thinTriIndices = new Set(data.thin_triangle_indices || []);
+
+        // Full mesh rebuild (vertex count can change between effects)
         if (mainMesh) {
-            var geo = mainMesh.geometry;
-            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.vertices), 3));
-            geo.setIndex(new THREE.BufferAttribute(new Uint32Array(data.indices), 1));
-            if (data.normals && data.normals.length > 0) {
-                geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
-            } else {
-                geo.computeVertexNormals();
-            }
-            geo.attributes.position.needsUpdate = true;
-            geo.computeBoundingSphere();
+            scene.remove(mainMesh);
+            mainMesh.geometry.dispose();
+            mainMesh.material.dispose();
+            mainMesh = null;
         }
+        var geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.vertices), 3));
+        geo.setIndex(new THREE.BufferAttribute(new Uint32Array(data.indices), 1));
+        if (data.normals && data.normals.length > 0) {
+            geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
+        } else {
+            geo.computeVertexNormals();
+        }
+        var mat = new THREE.MeshStandardMaterial({ color: 0xc8a86b, metalness: 0.8, roughness: 0.2, side: THREE.DoubleSide });
+        mainMesh = new THREE.Mesh(geo, mat);
+        scene.add(mainMesh);
+
         rebuildOverlay();
         updateThicknessStatus(data);
+        setStatus('Effekt angewendet', 'ok');
         hideLoading();
     };
 }

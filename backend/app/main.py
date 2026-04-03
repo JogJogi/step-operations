@@ -178,14 +178,17 @@ async def websocket_preview(ws: WebSocket):
             locked_faces = msg.get("locked_faces", [])
             min_thickness = msg.get("min_thickness", 0.8)
 
+            print(f"[WS] preview: effect={effect!r} params={params}", flush=True)
             try:
-                # Run in thread pool to avoid blocking event loop
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: _preview_pipeline(shape, effect, locked_faces, params, min_thickness)
                 )
+                print(f"[WS] preview done: {len(result.get('vertices', []))} verts", flush=True)
                 await ws.send_json(result)
             except Exception as e:
+                import traceback
+                print(f"[WS] preview error: {e}\n{traceback.format_exc()}", flush=True)
                 await ws.send_json({"error": str(e)})
 
     except WebSocketDisconnect:
