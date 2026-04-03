@@ -20,7 +20,7 @@ from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED, TopAbs_SHELL
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.gp import gp_Pnt
-from OCP.TopoDS import TopoDS
+from OCP.TopoDS import TopoDS  # TopoDS.Face_s(), TopoDS.Shell_s() for downcasting
 from scipy.spatial import Voronoi, cKDTree
 
 
@@ -83,7 +83,7 @@ def _crystal(
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         face_hash = str(face.__hash__())
 
         if face_hash in locked_face_ids:
@@ -136,7 +136,7 @@ def _voronoi(
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         face_hash = str(face.__hash__())
 
         if face_hash in locked_face_ids:
@@ -239,7 +239,7 @@ def _grid(
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         face_hash = str(face.__hash__())
 
         if face_hash in locked_face_ids:

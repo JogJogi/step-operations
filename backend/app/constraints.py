@@ -10,6 +10,7 @@ from OCP.BRep import BRep_Tool
 from OCP.TopAbs import TopAbs_FACE
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
+from OCP.TopoDS import TopoDS
 from OCP.BRepClass3d import BRepClass3d_SolidClassifier
 from OCP.gp import gp_Pnt
 
@@ -45,7 +46,7 @@ def check_wall_thickness(shape: cq.Shape, min_thickness_mm: float = 0.8) -> dict
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         face_hash = str(face.__hash__())
         location = TopLoc_Location()
         triangulation = BRep_Tool.Triangulation_s(face, location)

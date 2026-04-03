@@ -18,7 +18,7 @@ from OCP.BRepBuilderAPI import (
     BRepBuilderAPI_MakeSolid,
     BRepBuilderAPI_MakeShell,
 )
-from OCP.TopoDS import TopoDS_Compound, TopoDS_Shell, TopoDS_Solid, TopoDS_Shape
+from OCP.TopoDS import TopoDS_Compound, TopoDS_Shell, TopoDS_Solid, TopoDS_Shape, TopoDS
 from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
@@ -61,7 +61,7 @@ def polygonize(
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         face_hash = str(face.__hash__())
 
         if face_hash in locked_face_ids:
