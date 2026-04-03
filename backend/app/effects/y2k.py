@@ -21,6 +21,7 @@ from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.gp import gp_Pnt
 from OCP.TopoDS import TopoDS  # TopoDS.Face_s(), TopoDS.Shell_s() for downcasting
+from OCP.BRepTools import BRepTools
 from scipy.spatial import Voronoi, cKDTree
 
 
@@ -76,6 +77,7 @@ def _crystal(
     merge_angle_deg = 60.0 * (1.0 - sharpness)
     merge_cos = np.cos(np.radians(merge_angle_deg))
 
+    BRepTools.Clean_s(occ_shape)
     mesh = BRepMesh_IncrementalMesh(occ_shape, facet_size_mm, False, 0.7, True)
     mesh.Perform()
 
@@ -130,6 +132,7 @@ def _voronoi(
     rng = np.random.default_rng(seed)
 
     # Fine tessellation for source geometry
+    BRepTools.Clean_s(occ_shape)
     mesh = BRepMesh_IncrementalMesh(occ_shape, 0.3, False, 0.2, True)
     mesh.Perform()
 
@@ -231,6 +234,7 @@ def _grid(
     """
     occ_shape = shape.wrapped if hasattr(shape, 'wrapped') else shape
 
+    BRepTools.Clean_s(occ_shape)
     mesh = BRepMesh_IncrementalMesh(occ_shape, grid_size_mm * 0.5, False, 0.3, True)
     mesh.Perform()
 

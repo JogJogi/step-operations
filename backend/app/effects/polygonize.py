@@ -23,6 +23,7 @@ from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
 from OCP.gp import gp_Pnt
+from OCP.BRepTools import BRepTools
 
 
 def polygonize(
@@ -46,6 +47,9 @@ def polygonize(
         New CadQuery shape with polygonized geometry
     """
     occ_shape = shape.wrapped if hasattr(shape, 'wrapped') else shape
+
+    # Clear cached tessellation so our deflection setting takes effect
+    BRepTools.Clean_s(occ_shape)
 
     # Tessellate the whole shape first
     mesh = BRepMesh_IncrementalMesh(

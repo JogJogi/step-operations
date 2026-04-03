@@ -517,7 +517,8 @@ function initWS() {
         } else {
             geo.computeVertexNormals();
         }
-        var mat = new THREE.MeshStandardMaterial({ color: 0xc8a86b, metalness: 0.8, roughness: 0.2, side: THREE.DoubleSide });
+        var useFlatShading = (currentEffect === 'polygonize' || currentEffect === 'crystal' || currentEffect === 'grid');
+        var mat = new THREE.MeshStandardMaterial({ color: 0xc8a86b, metalness: 0.8, roughness: 0.2, side: THREE.DoubleSide, flatShading: useFlatShading });
         mainMesh = new THREE.Mesh(geo, mat);
         scene.add(mainMesh);
 
