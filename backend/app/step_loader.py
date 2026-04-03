@@ -8,7 +8,7 @@ from OCP.BRep import BRep_Tool
 from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
-from OCP.gp import gp_Trsf
+from OCP.TopoDS import TopoDS
 import os
 import tempfile
 import uuid
@@ -51,31 +51,21 @@ def tessellate_shape(shape: cq.Shape, linear_deflection: float = 0.1, angular_de
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         location = TopLoc_Location()
         triangulation = BRep_Tool.Triangulation_s(face, location)
 
         if triangulation is not None:
-            # Generate stable face ID from face hash
             face_id = str(face.__hash__())
             if face_id not in face_id_to_index:
                 face_id_to_index[face_id] = face_index_counter
                 face_index_counter += 1
 
-            # Get transformation matrix
-            trsf = location.IsIdentity() and gp_Trsf() or location.IsIdentity() and gp_Trsf()
-            if not location.IsIdentity():
-                trsf = location.IsIdentity()
-
             is_reversed = face.Orientation() == TopAbs_REVERSED
             num_nodes = triangulation.NbNodes()
 
-            # Collect vertices
             for i in range(1, num_nodes + 1):
                 node = triangulation.Node(i)
-                # Apply location transformation
-                if not location.IsIdentity():
-                    node.Transform(location.IsIdentity() and gp_Trsf() or location.IsIdentity() and gp_Trsf())
                 all_vertices.extend([node.X(), node.Y(), node.Z()])
 
             # Collect triangles

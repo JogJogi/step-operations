@@ -7,6 +7,7 @@ from OCP.BRep import BRep_Tool
 from OCP.TopAbs import TopAbs_FACE, TopAbs_REVERSED
 from OCP.TopExp import TopExp_Explorer
 from OCP.TopLoc import TopLoc_Location
+from OCP.TopoDS import TopoDS
 
 
 def tessellate_faces(occ_shape, linear_deflection: float = 0.1, angular_deflection: float = 0.1) -> dict:
@@ -27,7 +28,7 @@ def tessellate_faces(occ_shape, linear_deflection: float = 0.1, angular_deflecti
 
     explorer = TopExp_Explorer(occ_shape, TopAbs_FACE)
     while explorer.More():
-        face = explorer.Current()
+        face = TopoDS.Face_s(explorer.Current())
         location = TopLoc_Location()
         triangulation = BRep_Tool.Triangulation_s(face, location)
 
@@ -36,12 +37,9 @@ def tessellate_faces(occ_shape, linear_deflection: float = 0.1, angular_deflecti
             is_reversed = face.Orientation() == TopAbs_REVERSED
             num_nodes = triangulation.NbNodes()
 
-            # Vertices with location transform applied
             local_verts = []
             for i in range(1, num_nodes + 1):
                 node = triangulation.Node(i)
-                if not location.IsIdentity():
-                    node.Transform(location.IsIdentity())
                 local_verts.append([node.X(), node.Y(), node.Z()])
             all_vertices.extend(local_verts)
 
