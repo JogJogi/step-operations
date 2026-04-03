@@ -225,22 +225,15 @@ def _tessellate_for_preview(shape: cq.Shape, quality: str = "preview") -> dict:
 
 
 def _preview_pipeline(shape, effect, locked_faces, params, min_thickness):
-    """Full preview pipeline (blocking - run in executor)."""
-    # Apply effect
+    """Fast preview pipeline (blocking - run in executor). No thickness check."""
     result_shape = _apply_effect(shape, effect, locked_faces, params, preview=True)
-
-    # Tessellate result
     mesh_data = _tessellate_for_preview(result_shape, quality="preview")
-
-    # Quick thickness check
-    thickness_result = check_wall_thickness(result_shape, min_thickness)
-
     return {
         **mesh_data,
-        "thin_triangle_indices": thickness_result["thin_triangle_indices"],
-        "thin_face_ids": thickness_result["thin_face_ids"],
-        "min_found_mm": thickness_result["min_found_mm"],
-        "passes": thickness_result["passes"],
+        "thin_triangle_indices": [],
+        "thin_face_ids": [],
+        "min_found_mm": None,
+        "passes": None,
     }
 
 
