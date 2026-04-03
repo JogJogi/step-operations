@@ -94,9 +94,10 @@ def _crystal(
             if triangulation is not None:
                 nodes, tris = _extract_mesh(triangulation, location, face.Orientation() == TopAbs_REVERSED)
                 # Cluster triangles by normal similarity
-                clusters = _cluster_by_normals(nodes, tris, merge_cos)
-                # Build faces from clusters (convex hull of cluster vertices projected to plane)
-                for cluster_tris in clusters:
+                # _cluster_by_normals returns lists of TRIANGLE INDICES into tris
+                cluster_idx_lists = _cluster_by_normals(nodes, tris, merge_cos)
+                for idx_list in cluster_idx_lists:
+                    cluster_tris = tris[np.array(idx_list)]  # convert indices → actual triangles
                     faces = _cluster_to_faces(nodes, cluster_tris)
                     for f in faces:
                         sewing.Add(f)

@@ -188,7 +188,8 @@ input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px;
 var currentMeshId = null;
 var lockModeActive = false;
 var lockedFaceIds = new Set();
-var faceMap = {};          // triIndex -> faceId
+var faceMap = {};          // triIndex -> faceId (original, for locking)
+var previewFaceMap = {};   // triIndex -> faceId (from preview, for overlays)
 var thinTriIndices = new Set();
 var currentEffect = '';
 var ws = null;
@@ -259,7 +260,8 @@ function initViewer() {
 }
 
 function loadMesh(meshData) {
-    faceMap = meshData.face_map || {};
+    faceMap = meshData.face_map || {};     // original — used for face locking
+    previewFaceMap = faceMap;              // initially same
     thinTriIndices = new Set(meshData.thin_triangle_indices || []);
 
     if (mainMesh) { scene.remove(mainMesh); mainMesh.geometry.dispose(); mainMesh.material.dispose(); mainMesh = null; }
@@ -496,7 +498,8 @@ function initWS() {
         try { data = JSON.parse(evt.data); } catch(e) { return; }
         if (data.error) { setStatus('Preview Fehler: ' + data.error, 'error'); hideLoading(); return; }
 
-        faceMap = data.face_map || {};
+        // Use preview face_map only for overlays, keep original faceMap for locking
+        previewFaceMap = data.face_map || {};
         thinTriIndices = new Set(data.thin_triangle_indices || []);
 
         // Full mesh rebuild (vertex count can change between effects)
