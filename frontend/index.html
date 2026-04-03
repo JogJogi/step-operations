@@ -1,265 +1,79 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STEP Ring Manipulator</title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg: #0f0f1a;
-            --panel: #1a1a2e;
-            --panel2: #16213e;
-            --accent: #c8a86b;
-            --accent2: #e8c88b;
-            --text: #e0e0e0;
-            --text-dim: #888;
-            --border: #2a2a4a;
-            --ok: #4caf50;
-            --warn: #ff9800;
-            --error: #f44336;
-            --info: #2196f3;
-            --locked: #3a6ef5;
-            --thin: #f54233;
-            --panel-w: 320px;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* Header */
-        header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 16px;
-            background: var(--panel2);
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-        header h1 { font-size: 1rem; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; }
-        #filename-display { font-size: 0.8rem; color: var(--text-dim); margin-left: auto; }
-
-        /* Main layout */
-        .main-layout {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* Viewer */
-        #viewer-container {
-            flex: 1;
-            position: relative;
-            background: #0a0a18;
-        }
-        #viewer-container canvas { display: block; width: 100% !important; height: 100% !important; }
-
-        /* Dropzone */
-        #dropzone {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            border: 2px dashed var(--border);
-            transition: border-color 0.2s;
-            z-index: 10;
-        }
-        #dropzone.drag-over { border-color: var(--accent); }
-        #dropzone.hidden { display: none; }
-        .dropzone-icon { font-size: 3rem; }
-        .dropzone-text { font-size: 0.9rem; color: var(--text-dim); }
-        .dropzone-hint { font-size: 0.75rem; color: var(--text-dim); }
-        .btn-primary {
-            padding: 8px 20px;
-            background: var(--accent);
-            color: #1a1a2e;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .btn-primary:hover { background: var(--accent2); }
-
-        /* Side panel */
-        .side-panel {
-            width: var(--panel-w);
-            background: var(--panel);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        #main-ui.hidden { display: none; }
-
-        .panel-section {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .panel-section h3 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-dim);
-            margin-bottom: 10px;
-        }
-
-        /* Info row */
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.82rem;
-            margin-bottom: 6px;
-        }
-        .info-row .label { color: var(--text-dim); }
-        .info-row .value { font-weight: 600; }
-        .info-row .value.ok { color: var(--ok); }
-        .info-row .value.warn { color: var(--warn); }
-
-        /* Effect tabs */
-        .effect-tabs {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-        .effect-tab {
-            padding: 5px 10px;
-            background: var(--panel2);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-size: 0.78rem;
-            cursor: pointer;
-            color: var(--text-dim);
-            transition: all 0.15s;
-        }
-        .effect-tab:hover { border-color: var(--accent); color: var(--text); }
-        .effect-tab.active { background: var(--accent); border-color: var(--accent); color: #1a1a2e; font-weight: 600; }
-
-        /* Effect panels */
-        .effect-panel { margin-top: 12px; }
-        .effect-panel.hidden { display: none; }
-
-        /* Sliders */
-        .param-row {
-            margin-bottom: 10px;
-        }
-        .param-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            margin-bottom: 4px;
-        }
-        .param-label span:first-child { color: var(--text-dim); }
-        .param-label span:last-child { color: var(--accent); font-weight: 600; min-width: 50px; text-align: right; }
-        input[type="range"] {
-            width: 100%;
-            accent-color: var(--accent);
-            height: 4px;
-            cursor: pointer;
-        }
-
-        /* Checkbox */
-        .param-check {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.82rem;
-            cursor: pointer;
-            margin-bottom: 6px;
-        }
-        input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
-
-        /* Buttons */
-        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
-        .btn {
-            padding: 6px 12px;
-            border-radius: 5px;
-            border: 1px solid var(--border);
-            background: var(--panel2);
-            color: var(--text);
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .btn:hover { border-color: var(--accent); }
-        .btn.active { background: var(--locked); border-color: var(--locked); color: white; }
-        .btn.danger:hover { border-color: var(--error); color: var(--error); }
-
-        /* Export */
-        .export-btn {
-            flex: 1;
-            padding: 8px;
-            border-radius: 5px;
-            border: none;
-            font-weight: 600;
-            font-size: 0.82rem;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        #export-step-btn { background: var(--accent); color: #1a1a2e; }
-        #export-step-btn:hover { background: var(--accent2); }
-        #export-stl-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); }
-        #export-stl-btn:hover { border-color: var(--accent); }
-
-        /* Status bar */
-        .status-bar {
-            padding: 6px 16px;
-            font-size: 0.78rem;
-            background: var(--panel2);
-            border-top: 1px solid var(--border);
-            flex-shrink: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .status-bar.ok { color: var(--ok); }
-        .status-bar.warn { color: var(--warn); }
-        .status-bar.error { color: var(--error); }
-        .status-bar.info { color: var(--info); }
-
-        /* Loading overlay */
-        #loading-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            z-index: 100;
-        }
-        #loading-overlay.hidden { display: none; }
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Tooltip hint */
-        .hint {
-            font-size: 0.72rem;
-            color: var(--text-dim);
-            margin-top: 4px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEP Ring Manipulator</title>
+<script src="/vendor/three.min.js"></script>
+<script src="/vendor/OrbitControls.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --bg: #0f0f1a; --panel: #1a1a2e; --panel2: #16213e;
+    --accent: #c8a86b; --accent2: #e8c88b; --text: #e0e0e0;
+    --text-dim: #888; --border: #2a2a4a;
+    --ok: #4caf50; --warn: #ff9800; --error: #f44336; --info: #2196f3;
+    --locked: #3a6ef5; --thin: #f54233; --panel-w: 320px;
+}
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+header { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--panel2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+header h1 { font-size: 1rem; font-weight: 600; color: var(--accent); letter-spacing: 0.05em; }
+#filename-display { font-size: 0.8rem; color: var(--text-dim); margin-left: auto; }
+.main-layout { display: flex; flex: 1; overflow: hidden; }
+#viewer-container { flex: 1; position: relative; background: #0a0a18; }
+#viewer-container canvas { display: block; width: 100% !important; height: 100% !important; }
+#dropzone { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; border: 2px dashed var(--border); transition: border-color 0.2s; z-index: 10; cursor: pointer; }
+#dropzone.drag-over { border-color: var(--accent); }
+#dropzone.hidden { display: none; }
+.dropzone-icon { font-size: 3rem; }
+.dropzone-text { font-size: 0.9rem; color: var(--text-dim); }
+.dropzone-hint { font-size: 0.75rem; color: var(--text-dim); }
+.btn-primary { padding: 8px 20px; background: var(--accent); color: #1a1a2e; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+.btn-primary:hover { background: var(--accent2); }
+.side-panel { width: var(--panel-w); background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+#main-ui { display: none; flex-direction: column; flex: 1; }
+#main-ui.visible { display: flex; }
+.panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.panel-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 10px; }
+.info-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 6px; }
+.info-row .label { color: var(--text-dim); }
+.info-row .value { font-weight: 600; }
+.info-row .value.ok { color: var(--ok); }
+.info-row .value.warn { color: var(--warn); }
+.effect-tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.effect-tab { padding: 5px 10px; background: var(--panel2); border: 1px solid var(--border); border-radius: 4px; font-size: 0.78rem; cursor: pointer; color: var(--text-dim); transition: all 0.15s; }
+.effect-tab:hover { border-color: var(--accent); color: var(--text); }
+.effect-tab.active { background: var(--accent); border-color: var(--accent); color: #1a1a2e; font-weight: 600; }
+.effect-panel { margin-top: 12px; display: none; }
+.effect-panel.active { display: block; }
+.param-row { margin-bottom: 10px; }
+.param-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+.param-label span:first-child { color: var(--text-dim); }
+.param-label span:last-child { color: var(--accent); font-weight: 600; min-width: 50px; text-align: right; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 4px; cursor: pointer; }
+.param-check { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer; margin-bottom: 6px; }
+input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { padding: 6px 12px; border-radius: 5px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.btn:hover { border-color: var(--accent); }
+.btn.active { background: var(--locked); border-color: var(--locked); color: white; }
+.btn.danger:hover { border-color: var(--error); color: var(--error); }
+.export-btn { flex: 1; padding: 8px; border-radius: 5px; border: none; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.15s; }
+#export-step-btn { background: var(--accent); color: #1a1a2e; }
+#export-step-btn:hover { background: var(--accent2); }
+#export-stl-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); }
+#export-stl-btn:hover { border-color: var(--accent); }
+.status-bar { padding: 6px 16px; font-size: 0.78rem; background: var(--panel2); border-top: 1px solid var(--border); flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.status-bar.ok { color: var(--ok); }
+.status-bar.warn { color: var(--warn); }
+.status-bar.error { color: var(--error); }
+.status-bar.info { color: var(--info); }
+#loading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; gap: 12px; font-size: 0.9rem; z-index: 100; }
+#loading-overlay.show { display: flex; }
+.spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hint { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; }
+</style>
 </head>
 <body>
 
@@ -269,170 +83,91 @@
 </header>
 
 <div class="main-layout">
-    <!-- 3D Viewer -->
     <div id="viewer-container">
-        <!-- Dropzone: label wraps the input so the whole area is clickable -->
-        <label id="dropzone" for="file-input">
+        <div id="dropzone">
             <div class="dropzone-icon">📐</div>
             <div class="dropzone-text">STEP / STP Datei hierher ziehen</div>
             <div class="dropzone-hint">oder klicken zum Öffnen</div>
-            <span class="btn-primary">Datei wählen</span>
+            <button class="btn-primary" type="button">Datei wählen</button>
             <input type="file" id="file-input" accept=".step,.stp" style="display:none">
-        </label>
-
-        <!-- Loading overlay -->
-        <div id="loading-overlay" class="hidden">
+        </div>
+        <div id="loading-overlay">
             <div class="spinner"></div>
-            <span class="loading-text">Laden...</span>
+            <span id="loading-text">Laden...</span>
         </div>
     </div>
 
-    <!-- Side panel -->
     <div class="side-panel">
-        <div id="main-ui" class="hidden">
-
-            <!-- Model info -->
+        <div id="main-ui">
             <div class="panel-section">
                 <h3>Modell</h3>
-                <div class="info-row">
-                    <span class="label">Flächen</span>
-                    <span class="value" id="face-count">—</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Gesperrte Flächen</span>
-                    <span class="value" id="locked-count">0</span>
-                </div>
-                <div class="info-row">
-                    <span class="label">Wandstärke Min</span>
-                    <span class="value" id="thickness-status">—</span>
-                </div>
+                <div class="info-row"><span class="label">Flächen</span><span class="value" id="face-count">—</span></div>
+                <div class="info-row"><span class="label">Gesperrte Flächen</span><span class="value" id="locked-count">0</span></div>
+                <div class="info-row"><span class="label">Wandstärke Min</span><span class="value" id="thickness-status">—</span></div>
             </div>
-
-            <!-- Face locking -->
             <div class="panel-section">
                 <h3>Flächen sperren</h3>
                 <div class="btn-row">
                     <button class="btn" id="lock-mode-btn">🔓 Lock Mode: OFF</button>
                     <button class="btn danger" id="clear-locks-btn">Alle freigeben</button>
                 </div>
-                <p class="hint" style="margin-top:8px">Im Lock-Modus: Fläche anklicken um sie zu schützen (blau = gesperrt). Innendurchmesser immer sperren!</p>
-                <div style="margin-top:8px">
-                    <button class="btn" id="auto-detect-bore-btn" style="width:100%">🔵 Innenfläche manuell wählen</button>
-                </div>
+                <p class="hint" style="margin-top:8px">Im Lock-Modus: Fläche anklicken um sie zu schützen (blau = gesperrt).</p>
             </div>
-
-            <!-- Effect selection -->
             <div class="panel-section">
                 <h3>Effekt</h3>
                 <div class="effect-tabs">
-                    <button class="effect-tab" data-effect="">Kein</button>
+                    <button class="effect-tab active" data-effect="">Kein</button>
                     <button class="effect-tab" data-effect="polygonize">Polygonisieren</button>
                     <button class="effect-tab" data-effect="crystal">Kristall</button>
                     <button class="effect-tab" data-effect="voronoi">Voronoi</button>
                     <button class="effect-tab" data-effect="grid">Grid</button>
                 </div>
-
-                <!-- Polygonize panel -->
-                <div class="effect-panel hidden" data-effect="polygonize">
+                <div class="effect-panel" data-effect="polygonize">
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Dreiecksgröße</span>
-                            <span id="tri-size-val">2.0 mm</span>
-                        </div>
-                        <input type="range" id="tri-size" min="0.5" max="10" step="0.1" value="2.0"
-                               data-unit="mm" data-decimals="1">
+                        <div class="param-label"><span>Dreiecksgröße</span><span id="tri-size-val">2.0 mm</span></div>
+                        <input type="range" id="tri-size" min="0.5" max="10" step="0.1" value="2.0">
                     </div>
-                    <div class="param-row">
-                        <div class="param-label">
-                            <span>Winkeltoleranz</span>
-                            <span id="tri-angular-val">0.5</span>
-                        </div>
-                        <input type="range" id="tri-angular" min="0.1" max="1.0" step="0.05" value="0.5"
-                               data-decimals="2">
-                    </div>
-                    <label class="param-check">
-                        <input type="checkbox" id="tri-uniform" checked>
-                        Gleichmäßige Dreiecke
-                    </label>
+                    <label class="param-check"><input type="checkbox" id="tri-uniform" checked> Gleichmäßige Dreiecke</label>
                 </div>
-
-                <!-- Crystal panel -->
-                <div class="effect-panel hidden" data-effect="crystal">
+                <div class="effect-panel" data-effect="crystal">
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Facettengröße</span>
-                            <span id="crystal-size-val">3.0 mm</span>
-                        </div>
-                        <input type="range" id="crystal-size" min="1" max="15" step="0.5" value="3.0"
-                               data-unit="mm" data-decimals="1">
+                        <div class="param-label"><span>Facettengröße</span><span id="crystal-size-val">3.0 mm</span></div>
+                        <input type="range" id="crystal-size" min="1" max="15" step="0.5" value="3.0">
                     </div>
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Schärfe</span>
-                            <span id="crystal-sharpness-val">0.5</span>
-                        </div>
-                        <input type="range" id="crystal-sharpness" min="0" max="1" step="0.05" value="0.5"
-                               data-decimals="2">
+                        <div class="param-label"><span>Schärfe</span><span id="crystal-sharpness-val">0.5</span></div>
+                        <input type="range" id="crystal-sharpness" min="0" max="1" step="0.05" value="0.5">
                     </div>
-                    <p class="hint">0 = weich verschmolzen, 1 = jedes Dreieck einzeln</p>
                 </div>
-
-                <!-- Voronoi panel -->
-                <div class="effect-panel hidden" data-effect="voronoi">
+                <div class="effect-panel" data-effect="voronoi">
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Anzahl Zellen</span>
-                            <span id="voronoi-seeds-val">80</span>
-                        </div>
-                        <input type="range" id="voronoi-seeds" min="10" max="300" step="5" value="80"
-                               data-decimals="0">
+                        <div class="param-label"><span>Anzahl Zellen</span><span id="voronoi-seeds-val">80</span></div>
+                        <input type="range" id="voronoi-seeds" min="10" max="300" step="5" value="80">
                     </div>
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Zufälligkeit</span>
-                            <span id="voronoi-randomness-val">0.5</span>
-                        </div>
-                        <input type="range" id="voronoi-randomness" min="0" max="1" step="0.05" value="0.5"
-                               data-decimals="2">
+                        <div class="param-label"><span>Zufälligkeit</span><span id="voronoi-randomness-val">0.5</span></div>
+                        <input type="range" id="voronoi-randomness" min="0" max="1" step="0.05" value="0.5">
                     </div>
-                    <p class="hint">0 = gleichmäßig, 1 = vollständig zufällig</p>
                 </div>
-
-                <!-- Grid panel -->
-                <div class="effect-panel hidden" data-effect="grid">
+                <div class="effect-panel" data-effect="grid">
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Rastergröße</span>
-                            <span id="grid-size-val">2.0 mm</span>
-                        </div>
-                        <input type="range" id="grid-size" min="0.5" max="10" step="0.25" value="2.0"
-                               data-unit="mm" data-decimals="1">
+                        <div class="param-label"><span>Rastergröße</span><span id="grid-size-val">2.0 mm</span></div>
+                        <input type="range" id="grid-size" min="0.5" max="10" step="0.25" value="2.0">
                     </div>
                     <div class="param-row">
-                        <div class="param-label">
-                            <span>Rotation</span>
-                            <span id="grid-rotation-val">0.0°</span>
-                        </div>
-                        <input type="range" id="grid-rotation" min="0" max="90" step="1" value="0"
-                               data-unit="°" data-decimals="0">
+                        <div class="param-label"><span>Rotation</span><span id="grid-rotation-val">0°</span></div>
+                        <input type="range" id="grid-rotation" min="0" max="90" step="1" value="0">
                     </div>
                 </div>
             </div>
-
-            <!-- Constraints -->
             <div class="panel-section">
                 <h3>Fertigungsconstraints</h3>
                 <div class="param-row">
-                    <div class="param-label">
-                        <span>Min. Wandstärke</span>
-                        <span id="min-thickness-val">0.8 mm</span>
-                    </div>
+                    <div class="param-label"><span>Min. Wandstärke</span><span id="min-thickness-val">0.8 mm</span></div>
                     <input type="range" id="min-thickness" min="0.2" max="3.0" step="0.1" value="0.8">
                 </div>
                 <p class="hint">Bereiche unter dieser Stärke werden rot markiert</p>
             </div>
-
-            <!-- Export -->
             <div class="panel-section" style="margin-top:auto">
                 <h3>Export</h3>
                 <div class="btn-row">
@@ -440,20 +175,427 @@
                     <button class="export-btn" id="export-stl-btn">⬇ STL</button>
                 </div>
             </div>
-
-        </div><!-- /#main-ui -->
-    </div><!-- /.side-panel -->
-</div><!-- /.main-layout -->
+        </div>
+    </div>
+</div>
 
 <div class="status-bar" id="status-bar">Bereit — STEP-Datei laden um zu beginnen</div>
 
-<script type="importmap">
-{
-    "imports": {
-        "three": "/vendor/three.module.js"
+<script>
+// ============================================================
+// State
+// ============================================================
+var currentMeshId = null;
+var lockModeActive = false;
+var lockedFaceIds = new Set();
+var faceMap = {};          // triIndex -> faceId
+var thinTriIndices = new Set();
+var currentEffect = '';
+var ws = null;
+var wsDebounceTimer = null;
+
+// Three.js objects
+var scene, camera, renderer, orbitControls, raycaster, mainMesh, overlayMesh;
+
+// ============================================================
+// Startup
+// ============================================================
+window.addEventListener('DOMContentLoaded', function() {
+    initViewer();
+    initDropzone();
+    initControls();
+    initWS();
+    setStatus('Bereit — STEP-Datei laden um zu beginnen');
+});
+
+// ============================================================
+// Three.js Viewer
+// ============================================================
+function initViewer() {
+    var container = document.getElementById('viewer-container');
+    var w = container.clientWidth || 800;
+    var h = container.clientHeight || 600;
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a18);
+
+    camera = new THREE.PerspectiveCamera(45, w / h, 0.01, 1000);
+    camera.position.set(0, 0, 30);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(w, h);
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    var key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(10, 20, 15);
+    scene.add(key);
+    var fill = new THREE.DirectionalLight(0xaaccff, 0.5);
+    fill.position.set(-10, -5, -10);
+    scene.add(fill);
+
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    orbitControls.enableDamping = true;
+    orbitControls.dampingFactor = 0.05;
+
+    raycaster = new THREE.Raycaster();
+
+    renderer.domElement.addEventListener('click', onCanvasClick);
+
+    new ResizeObserver(function() {
+        var w2 = container.clientWidth;
+        var h2 = container.clientHeight;
+        camera.aspect = w2 / h2;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w2, h2);
+    }).observe(container);
+
+    (function animate() {
+        requestAnimationFrame(animate);
+        orbitControls.update();
+        renderer.render(scene, camera);
+    })();
+}
+
+function loadMesh(meshData) {
+    faceMap = meshData.face_map || {};
+    thinTriIndices = new Set(meshData.thin_triangle_indices || []);
+
+    if (mainMesh) { scene.remove(mainMesh); mainMesh.geometry.dispose(); mainMesh.material.dispose(); mainMesh = null; }
+
+    var vertices = new Float32Array(meshData.vertices);
+    var indices = new Uint32Array(meshData.indices);
+    var normals = meshData.normals ? new Float32Array(meshData.normals) : null;
+
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.setIndex(new THREE.BufferAttribute(indices, 1));
+    if (normals && normals.length > 0) {
+        geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+    } else {
+        geo.computeVertexNormals();
+    }
+
+    var mat = new THREE.MeshStandardMaterial({ color: 0xc8a86b, metalness: 0.8, roughness: 0.2, side: THREE.DoubleSide });
+    mainMesh = new THREE.Mesh(geo, mat);
+    scene.add(mainMesh);
+
+    // Fit camera
+    var box = new THREE.Box3().setFromObject(mainMesh);
+    var center = box.getCenter(new THREE.Vector3());
+    var size = box.getSize(new THREE.Vector3());
+    var maxDim = Math.max(size.x, size.y, size.z);
+    orbitControls.target.copy(center);
+    camera.position.copy(center);
+    camera.position.z += maxDim * 2.5;
+    orbitControls.update();
+
+    rebuildOverlay();
+}
+
+function rebuildOverlay() {
+    if (overlayMesh) { scene.remove(overlayMesh); overlayMesh.geometry.dispose(); overlayMesh.material.dispose(); overlayMesh = null; }
+    if (!mainMesh) return;
+
+    var geo = mainMesh.geometry;
+    var idxAttr = geo.index;
+    if (!idxAttr) return;
+    var idxArr = idxAttr.array;
+    var posArr = geo.attributes.position.array;
+    var numTris = idxArr.length / 3;
+
+    var oPos = [], oCol = [];
+    for (var i = 0; i < numTris; i++) {
+        var fid = faceMap[i];
+        var isLocked = fid && lockedFaceIds.has(fid);
+        var isThin = thinTriIndices.has(i);
+        if (!isLocked && !isThin) continue;
+        var col = isLocked ? [0.2, 0.4, 1.0] : [1.0, 0.2, 0.1];
+        for (var j = 0; j < 3; j++) {
+            var vi = idxArr[i * 3 + j] * 3;
+            oPos.push(posArr[vi], posArr[vi+1], posArr[vi+2]);
+            oCol.push(col[0], col[1], col[2]);
+        }
+    }
+    if (oPos.length === 0) return;
+
+    var og = new THREE.BufferGeometry();
+    og.setAttribute('position', new THREE.Float32BufferAttribute(oPos, 3));
+    og.setAttribute('color', new THREE.Float32BufferAttribute(oCol, 3));
+    var om = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthTest: false });
+    overlayMesh = new THREE.Mesh(og, om);
+    scene.add(overlayMesh);
+}
+
+function onCanvasClick(e) {
+    if (!mainMesh || !lockModeActive) return;
+    var rect = renderer.domElement.getBoundingClientRect();
+    var mouse = new THREE.Vector2(
+        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    raycaster.setFromCamera(mouse, camera);
+    var hits = raycaster.intersectObject(mainMesh);
+    if (hits.length > 0) {
+        var faceId = faceMap[hits[0].faceIndex];
+        if (!faceId) return;
+        if (lockedFaceIds.has(faceId)) lockedFaceIds.delete(faceId);
+        else lockedFaceIds.add(faceId);
+        document.getElementById('locked-count').textContent = lockedFaceIds.size;
+        rebuildOverlay();
+        triggerPreview();
     }
 }
+
+// ============================================================
+// Dropzone / File Upload
+// ============================================================
+function initDropzone() {
+    var dropzone = document.getElementById('dropzone');
+    var fileInput = document.getElementById('file-input');
+
+    // Click anywhere on dropzone to open file dialog
+    dropzone.addEventListener('click', function(e) {
+        if (e.target === fileInput) return;
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files && fileInput.files[0]) {
+            handleFileUpload(fileInput.files[0]);
+        }
+    });
+
+    dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', function() { dropzone.classList.remove('drag-over'); });
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        var file = e.dataTransfer.files[0];
+        if (file) handleFileUpload(file);
+    });
+}
+
+async function handleFileUpload(file) {
+    setStatus('Hochladen...', 'info');
+    showLoading('STEP-Datei laden...');
+
+    var formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        var res = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!res.ok) {
+            var err = await res.json().catch(function() { return { detail: res.statusText }; });
+            throw new Error(err.detail || 'Upload fehlgeschlagen');
+        }
+        var result = await res.json();
+        currentMeshId = result.mesh_id;
+
+        loadMesh(result.mesh);
+
+        document.getElementById('dropzone').classList.add('hidden');
+        document.getElementById('main-ui').classList.add('visible');
+        document.getElementById('filename-display').textContent = result.filename;
+        document.getElementById('face-count').textContent = result.num_faces;
+
+        setStatus('Geladen: ' + result.filename + ' (' + result.num_faces + ' Flächen)', 'ok');
+    } catch (err) {
+        setStatus('Fehler: ' + err.message, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// ============================================================
+// Controls
+// ============================================================
+function initControls() {
+    // Effect tabs
+    document.querySelectorAll('.effect-tab').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            currentEffect = btn.dataset.effect;
+            document.querySelectorAll('.effect-tab').forEach(function(b) { b.classList.toggle('active', b.dataset.effect === currentEffect); });
+            document.querySelectorAll('.effect-panel').forEach(function(p) { p.classList.toggle('active', p.dataset.effect === currentEffect); });
+            triggerPreview();
+        });
+    });
+
+    // Sliders
+    [
+        ['tri-size', 'tri-size-val', ' mm'],
+        ['crystal-size', 'crystal-size-val', ' mm'],
+        ['crystal-sharpness', 'crystal-sharpness-val', ''],
+        ['voronoi-seeds', 'voronoi-seeds-val', ''],
+        ['voronoi-randomness', 'voronoi-randomness-val', ''],
+        ['grid-size', 'grid-size-val', ' mm'],
+        ['grid-rotation', 'grid-rotation-val', '°'],
+        ['min-thickness', 'min-thickness-val', ' mm'],
+    ].forEach(function(row) {
+        var el = document.getElementById(row[0]);
+        var disp = document.getElementById(row[1]);
+        if (!el) return;
+        el.addEventListener('input', function() {
+            if (disp) disp.textContent = el.value + row[2];
+            triggerPreview();
+        });
+    });
+
+    document.getElementById('tri-uniform')?.addEventListener('change', triggerPreview);
+
+    // Lock mode
+    document.getElementById('lock-mode-btn').addEventListener('click', function() {
+        lockModeActive = !lockModeActive;
+        this.classList.toggle('active', lockModeActive);
+        this.textContent = lockModeActive ? '🔒 Lock Mode: ON' : '🔓 Lock Mode: OFF';
+        document.getElementById('viewer-container').style.cursor = lockModeActive ? 'crosshair' : 'default';
+    });
+
+    document.getElementById('clear-locks-btn').addEventListener('click', function() {
+        lockedFaceIds.clear();
+        document.getElementById('locked-count').textContent = '0';
+        rebuildOverlay();
+        triggerPreview();
+    });
+
+    document.getElementById('export-step-btn').addEventListener('click', function() { handleExport('step'); });
+    document.getElementById('export-stl-btn').addEventListener('click', function() { handleExport('stl'); });
+}
+
+function getParams() {
+    var params = {};
+    if (currentEffect === 'polygonize') {
+        params.triangle_size_mm = parseFloat(document.getElementById('tri-size').value);
+        params.uniform = document.getElementById('tri-uniform').checked;
+    } else if (currentEffect === 'crystal') {
+        params.facet_size_mm = parseFloat(document.getElementById('crystal-size').value);
+        params.sharpness = parseFloat(document.getElementById('crystal-sharpness').value);
+    } else if (currentEffect === 'voronoi') {
+        params.num_seeds = parseInt(document.getElementById('voronoi-seeds').value);
+        params.randomness = parseFloat(document.getElementById('voronoi-randomness').value);
+    } else if (currentEffect === 'grid') {
+        params.grid_size_mm = parseFloat(document.getElementById('grid-size').value);
+        params.rotation_deg = parseFloat(document.getElementById('grid-rotation').value);
+    }
+    return params;
+}
+
+// ============================================================
+// WebSocket Preview
+// ============================================================
+function initWS() {
+    var proto = location.protocol === 'https:' ? 'wss' : 'ws';
+    var url = proto + '://' + location.host + '/ws/preview';
+    ws = new WebSocket(url);
+    ws.onopen = function() { setStatus('Verbunden', 'ok'); };
+    ws.onclose = function() { setTimeout(initWS, 2000); };
+    ws.onerror = function() {};
+    ws.onmessage = function(evt) {
+        var data;
+        try { data = JSON.parse(evt.data); } catch(e) { return; }
+        if (data.error) { setStatus('Preview Fehler: ' + data.error, 'error'); hideLoading(); return; }
+
+        // Update mesh
+        faceMap = data.face_map || {};
+        thinTriIndices = new Set(data.thin_triangle_indices || []);
+        if (mainMesh) {
+            var geo = mainMesh.geometry;
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.vertices), 3));
+            geo.setIndex(new THREE.BufferAttribute(new Uint32Array(data.indices), 1));
+            if (data.normals && data.normals.length > 0) {
+                geo.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
+            } else {
+                geo.computeVertexNormals();
+            }
+            geo.attributes.position.needsUpdate = true;
+            geo.computeBoundingSphere();
+        }
+        rebuildOverlay();
+        updateThicknessStatus(data);
+        hideLoading();
+    };
+}
+
+function triggerPreview() {
+    if (!currentMeshId) return;
+    if (wsDebounceTimer) clearTimeout(wsDebounceTimer);
+    wsDebounceTimer = setTimeout(function() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        showLoading('Verarbeite...');
+        ws.send(JSON.stringify({
+            mesh_id: currentMeshId,
+            effect: currentEffect || null,
+            params: getParams(),
+            locked_faces: Array.from(lockedFaceIds),
+            min_thickness: parseFloat(document.getElementById('min-thickness').value)
+        }));
+    }, 400);
+}
+
+// ============================================================
+// Export
+// ============================================================
+async function handleExport(format) {
+    if (!currentMeshId) return;
+    setStatus('Exportiere...', 'info');
+    showLoading('Generiere ' + format.toUpperCase() + '...');
+    try {
+        var res = await fetch('/api/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mesh_id: currentMeshId,
+                locked_face_ids: Array.from(lockedFaceIds),
+                effect: currentEffect || null,
+                params: getParams(),
+                format: format,
+                min_thickness_mm: parseFloat(document.getElementById('min-thickness').value)
+            })
+        });
+        if (!res.ok) {
+            var err = await res.json().catch(function() { return { detail: res.statusText }; });
+            throw new Error(err.detail || 'Export fehlgeschlagen');
+        }
+        var tc = res.headers.get('X-Thickness-Check');
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = format === 'stl' ? 'ring_modified.stl' : 'ring_modified.step';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        if (tc) {
+            var tcData = JSON.parse(tc);
+            setStatus(tcData.passes ? 'Export OK — min Wandstärke: ' + tcData.min_found_mm + 'mm' : '⚠ Dünne Wände! Min: ' + tcData.min_found_mm + 'mm', tcData.passes ? 'ok' : 'warn');
+        } else { setStatus('Export abgeschlossen', 'ok'); }
+    } catch(err) { setStatus('Export Fehler: ' + err.message, 'error'); }
+    finally { hideLoading(); }
+}
+
+// ============================================================
+// UI Helpers
+// ============================================================
+function setStatus(msg, level) {
+    var el = document.getElementById('status-bar');
+    el.textContent = msg;
+    el.className = 'status-bar' + (level ? ' ' + level : '');
+}
+
+function showLoading(msg) {
+    document.getElementById('loading-text').textContent = msg || 'Laden...';
+    document.getElementById('loading-overlay').classList.add('show');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.remove('show');
+}
+
+function updateThicknessStatus(data) {
+    var el = document.getElementById('thickness-status');
+    if (data.passes === undefined) { el.textContent = '—'; el.className = 'value'; return; }
+    el.textContent = data.passes ? '✓ ' + data.min_found_mm + 'mm' : '⚠ ' + data.min_found_mm + 'mm';
+    el.className = 'value ' + (data.passes ? 'ok' : 'warn');
+}
 </script>
-<script type="module" src="js/app.js"></script>
 </body>
 </html>
